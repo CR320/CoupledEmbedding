@@ -126,11 +126,11 @@ solver = dict(
     lr_scheduler=dict(
         warmup_iters=500,
         warmup_ratio=1e-3,
-        milestones=[140, 180],
+        milestones=[200, 260],
         gamma=0.1
     ),
-    total_epochs=200,
-    eval_interval=5,   # epoch
+    total_epochs=300,
+    eval_interval=10,   # epoch
     log_interval=50,   # iter
     log_loss=['hms_loss', 'pull_loss', 'push_loss']
 )

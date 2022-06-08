@@ -170,7 +170,6 @@ def main_worker(gpu, cfg, args, results_queue=None):
                  lr_scheduler=lr_scheduler,
                  logger=logger,
                  loss_container=slc)
-        data_loader.dataset.shuffle_ind()
 
         # evaluate model
         if epoch % cfg.solver.eval_interval == 0:

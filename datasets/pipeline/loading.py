@@ -4,7 +4,7 @@ import collections
 from collections.abc import Sequence
 
 
-def collate_function(batches, samples_per_gpu=1, img_channels=3):
+def collate_function(batches, samples_per_gpu=1):
     """Puts each data field into a tensor/DataContainer with outer dimension
     batch size.
 

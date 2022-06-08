@@ -101,12 +101,12 @@ set_cfg = dict(
     workers_per_gpu=4,
     train=dict(
         type='CrowdPose',
-        ann_file='{}/json/crowdpose_train.json'.format(data_root),
+        ann_file='{}/json/crowdpose_trainval.json'.format(data_root),
         img_prefix='{}/images/'.format(data_root),
         pipeline=train_pipeline),
     val=dict(
         type='CrowdPose',
-        ann_file='{}/json/crowdpose_val.json'.format(data_root),
+        ann_file='{}/json/crowdpose_test.json'.format(data_root),
         img_prefix='{}/images/'.format(data_root),
         pipeline=val_pipeline),
     test=dict(
@@ -130,7 +130,7 @@ solver = dict(
         gamma=0.1
     ),
     total_epochs=300,
-    eval_interval=5,   # epoch
+    eval_interval=10,   # epoch
     log_interval=25,   # iter
     log_loss=['hms_loss', 'pull_loss', 'push_loss']
 )
