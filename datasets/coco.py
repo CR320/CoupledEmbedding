@@ -144,12 +144,14 @@ class COCOPose(BaseDataset):
         anno = [obj.copy() for obj in anno if obj['iscrowd'] == 0 or obj['num_keypoints'] > 0]
         mask = self._get_mask(anno, idx)
         joints = self._get_joints(anno)
+        boxes = self._get_boxes(anno)
 
         db_rec = dict()
         db_rec['dataset'] = self.dataset_name
         db_rec['image_file'] = os.path.join(self.img_prefix, self.id2name[img_id])
         db_rec['mask'] = [mask.copy() for _ in range(self.num_scales)]
         db_rec['joints'] = [joints.copy() for _ in range(self.num_scales)]
+        db_rec['boxes'] = boxes
 
         return db_rec
 
@@ -163,6 +165,16 @@ class COCOPose(BaseDataset):
             joints[i, :, :3] = np.array(obj['keypoints']).reshape([-1, 3])
 
         return joints
+
+    def _get_boxes(self, anno):
+        """Get joints for all people in an image."""
+        num_people = len(anno)
+
+        boxes = np.zeros((num_people, 4), dtype=np.float32)
+        for i, obj in enumerate(anno):
+            boxes[i] = np.array(obj['bbox'])
+
+        return boxes
 
     def _get_mask(self, anno, idx):
         """Get ignore masks to mask out losses."""
