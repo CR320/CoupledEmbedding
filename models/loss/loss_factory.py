@@ -36,40 +36,6 @@ class HeatmapsLoss(nn.Module):
         return total_loss
 
 
-class ScaleLoss(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, scales, masks=None):
-        total_loss = 0
-        for i, scale in enumerate(scales):
-            loss = scale ** 2
-            if masks is not None:
-                loss = loss * masks[i][:, None, :, :]
-            total_loss += loss.mean(dim=3).mean(dim=2).mean(dim=1).mean(dim=0)
-        return total_loss
-
-
-class ScaleAwareHeatmapsLoss(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.criterion = nn.MSELoss(reduction='none')
-
-    def forward(self, preds, targets, scales, masks=None):
-        total_loss = 0
-        for i, (pred, target, scale) in enumerate(zip(preds, targets, scales)):
-            dis = torch.where(torch.gt(target, 0), target, target + 1)
-            dis = torch.log(dis)
-            scaled_target = target + target*dis*scale + 0.5*target*dis**2*scale**2
-            weight = torch.abs(1-pred) * target ** 0.01 + torch.abs(pred) * (1 - target**0.01)
-            loss = self.criterion(pred, scaled_target) * weight
-            if masks is not None:
-                loss = loss * masks[i][:, None, :, :]
-            total_loss += loss.mean(dim=3).mean(dim=2).mean(dim=1).mean(dim=0)
-
-        return total_loss
-
-
 class AssociativeEmbeddingLoss(nn.Module):
     def __init__(self):
         super().__init__()

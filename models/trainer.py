@@ -1,6 +1,5 @@
-import torch
 import torch.nn as nn
-from models.loss.loss_factory import HeatmapsLoss, ScaleAwareHeatmapsLoss, AssociativeEmbeddingLoss, ScaleLoss
+from models.loss.loss_factory import HeatmapsLoss, AssociativeEmbeddingLoss
 
 
 class Trainer(nn.Module):
