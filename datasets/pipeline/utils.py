@@ -121,3 +121,16 @@ def warp_affine_joints(joints, mat):
     joints = joints.reshape(-1, 2)
 
     return np.dot(np.concatenate((joints, joints[:, 0:1] * 0 + 1), axis=1), mat.T).reshape(shape)
+
+
+def warp_affine_boxes(boxes, mat):
+    """Affine the bounding boxes by the transform matrix."""
+    tl = boxes[:, 0:2]
+    bl = np.stack([boxes[:, 0], boxes[:, 1] + boxes[:, 3]], axis=1)
+    tr = np.stack([boxes[:, 0] + boxes[:, 2], boxes[:, 1]], axis=1)
+    br = np.stack([boxes[:, 0] + boxes[:, 2], boxes[:, 1] + boxes[:, 3]], axis=1)
+    corners = np.stack([tl, bl, tr, br], axis=1)
+    shape = corners.shape
+    corners = corners.reshape(-1, 2)
+
+    return np.dot(np.concatenate((corners, corners[:, 0:1] * 0 + 1), axis=1), mat.T).reshape(shape)

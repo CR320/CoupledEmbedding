@@ -18,8 +18,7 @@ class PoseDet(nn.Module):
         if phase == 'train':
             return self.head(fea)
         elif phase == 'inference':
-            results = self.head(fea)
-            heatmaps, tagmaps = results[0:2]
+            heatmaps, tagmaps = self.head(fea)
             if len(heatmaps) > 1:
                 hms_low = heatmaps[0]
                 hms_high = heatmaps[1]

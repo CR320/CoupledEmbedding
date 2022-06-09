@@ -1,7 +1,9 @@
 import cv2
 import mmcv
 import numpy as np
-from .utils import get_affine_transform, warp_affine_joints
+import torch
+
+from .utils import get_affine_transform, warp_affine_joints, warp_affine_boxes
 
 
 class LoadImageFromFile:
@@ -81,7 +83,7 @@ class RandomAffine:
 
     def __call__(self, results):
         """Perform data augmentation with random scaling & rotating."""
-        image, mask, joints = results['image'], results['mask'], results['joints']
+        image, boxes, mask, joints = results['image'], results['boxes'], results['mask'], results['joints']
 
         self.input_size = np.array([results['ann_info']['image_size'],
                                     results['ann_info']['image_size']])
@@ -132,8 +134,9 @@ class RandomAffine:
         image = cv2.warpAffine(image,
                                mat_input,
                                (int(self.input_size[0]), int(self.input_size[1])))
+        boxes = warp_affine_boxes(boxes, mat_input)
 
-        results['image'], results['mask'], results['joints'] = image, mask, joints
+        results['image'], results['boxes'], results['mask'], results['joints'] = image, boxes, mask, joints
 
         return results
 
@@ -282,6 +285,28 @@ class JointsEncoder:
         return visible_kpts
 
 
+class ScalesEncoder:
+    """Encodes the visible instances' normalized scales
+
+    Args:
+        max_num_people(int): Max number of people in an image
+        image_size(int): size of image
+    """
+
+    def __init__(self, max_num_people, image_size):
+        self.max_num_people = max_num_people
+        self.image_size = image_size
+
+    def __call__(self, boxes):
+        scales = np.zeros(self.max_num_people)
+        e1 = np.sum((boxes[:, 0, :] - boxes[:, 1, :]) ** 2, axis=1) ** 0.5
+        e2 = np.sum((boxes[:, 0, :] - boxes[:, 2, :]) ** 2, axis=1) ** 0.5
+        _scales = (e1 * e2 / (self.image_size * self.image_size)) ** 0.5
+        scales[0: len(_scales)] = _scales
+
+        return scales
+
+
 class FormatGroundTruth:
     """Generate multi-scale heatmap target for associate embedding.
 
@@ -294,8 +319,10 @@ class FormatGroundTruth:
         self.sigma = sigma
         self.max_num_people = max_num_people
 
-    def _generate(self, num_joints, heatmap_size):
-        """Get heatmap generator and joint encoder."""
+    def __call__(self, results):
+        """Generate multi-scale heatmap target for bottom-up."""
+        num_joints, heatmap_size, input_size = \
+            results['ann_info']['num_joints'], results['ann_info']['heatmap_size'], results['ann_info']['image_size']
         heatmap_generator = [
             HeatmapGenerator(output_size, num_joints, self.sigma)
             for output_size in heatmap_size
@@ -304,12 +331,8 @@ class FormatGroundTruth:
             JointsEncoder(self.max_num_people, num_joints, output_size, True)
             for output_size in heatmap_size
         ]
-        return heatmap_generator, joints_encoder
+        scales_encoder = ScalesEncoder(self.max_num_people, input_size)
 
-    def __call__(self, results):
-        """Generate multi-scale heatmap target for bottom-up."""
-        heatmap_generator, joints_encoder = self._generate(results['ann_info']['num_joints'],
-                                                           results['ann_info']['heatmap_size'])
         target_list = list()
         mask_list, joints_list = results['mask'], results['joints']
 
@@ -321,6 +344,7 @@ class FormatGroundTruth:
             mask_list[scale_id] = mask_list[scale_id].astype(np.float32)
             joints_list[scale_id] = joints_t.astype(np.int32)
 
+        results['box_scales'] = scales_encoder(results['boxes'])
         results['masks'], results['joints'] = mask_list, joints_list
         results['target_hms'] = target_list
 
@@ -333,40 +357,53 @@ class ResizeAlign:
         size_divisor (int): size_divisor
     """
 
-    def __init__(self, size_divisor=64):
+    def __init__(self, size_divisor, scale_factors):
         self.size_divisor = size_divisor
+        self.scale_factors = scale_factors
 
     def _ceil_to_multiples_of(self, x):
         """Transform x to the integral multiple of the base."""
         return int(np.ceil(x / self.size_divisor)) * self.size_divisor
 
+    def _get_image_size(self, image_shape, input_size, scale_factor):
+        # calculate the size for min_scale
+        h, w = image_shape
+        min_input_size = self._ceil_to_multiples_of(input_size * scale_factor)
+
+        if w < h:
+            w_resized = int(min_input_size)
+            h_resized = int(self._ceil_to_multiples_of(min_input_size / w * h))
+            scale_w = w / 200
+            scale_h = h_resized / w_resized * w / 200
+        else:
+            h_resized = int(min_input_size)
+            w_resized = int(self._ceil_to_multiples_of(min_input_size / h * w))
+            scale_h = h / 200
+            scale_w = w_resized / h_resized * h / 200
+
+        base_size = (w_resized, h_resized)
+        center = [round(w / 2.0), round(h / 2.0)]
+        scale = [scale_w, scale_h]
+
+        return base_size, center, scale
+
     def __call__(self, results):
         """Resize multi-scale size and align transform for bottom-up."""
         input_size = results['ann_info']['image_size']
         image = results['image']
+        assert self.scale_factors[0] == 1
 
-        # calculate the size for min_scale
-        h, w, _ = image.shape
-        min_input_w = self._ceil_to_multiples_of(input_size)
-        min_input_h = self._ceil_to_multiples_of(input_size)
+        resized_images = list()
+        for scale_factor in self.scale_factors:
+            image_shape = image.shape[0:2]
+            base_size, center, scale = self._get_image_size(image_shape, input_size, scale_factor)
+            if scale_factor == 1:
+                results['base_size'], results['center'], results['scale'] = base_size, center, scale
 
-        if w < h:
-            w_resized = int(min_input_w)
-            h_resized = int(self._ceil_to_multiples_of(min_input_w / w * h))
-            scale_w = w / 200
-            scale_h = h_resized / w_resized * w / 200
-        else:
-            h_resized = int(min_input_h)
-            w_resized = int(self._ceil_to_multiples_of(min_input_h / h * w))
-            scale_h = h / 200
-            scale_w = w_resized / h_resized * h / 200
+            trans = get_affine_transform(np.array(center), np.array(scale), 0, base_size)
+            resized_images.append(cv2.warpAffine(image, trans, base_size))
 
-        center = [round(w / 2.0), round(h / 2.0)]
-        scale = [scale_w, scale_h]
-        trans = get_affine_transform(np.array(center), np.array(scale), 0, (w_resized, h_resized))
-        image_resized = cv2.warpAffine(image, trans, (w_resized, h_resized))
-
-        results['image'], results['center'], results['scale'] = image_resized, center, scale
+        results['image'] = resized_images
 
         return results
 
@@ -398,8 +435,19 @@ class NormalizeImage:
             dict: Normalized results, 'img_norm_cfg' key is added into
                 result dict.
         """
-        image = mmcv.imnormalize(results['image'], self.mean, self.std, self.to_rgb)
-        image = image.transpose(2, 0, 1)
-        results['image'] = image
+        images = results['image']
+
+        if isinstance(images, np.ndarray):
+            images = mmcv.imnormalize(images, self.mean, self.std, self.to_rgb)
+            norm_images = images.transpose(2, 0, 1)
+        elif isinstance(images, list):
+            norm_images = list()
+            for image in images:
+                image = mmcv.imnormalize(image, self.mean, self.std, self.to_rgb)
+                norm_images.append(image.transpose(2, 0, 1))
+        else:
+            raise TypeError('Unsupported image type:{}'.format(type(images)))
+
+        results['image'] = norm_images
 
         return results

@@ -7,26 +7,47 @@ from datasets.pipeline.utils import get_affine_transform, warp_affine_joints
 
 
 def project2image(heatmaps, tagmaps, projected_size):
-    resized_heatmaps = F.interpolate(heatmaps, size=projected_size, mode='bilinear', align_corners=False)
-    resized_tagmaps = F.interpolate(tagmaps, size=projected_size, mode='bilinear', align_corners=False)
+    resized_heatmaps, resized_tagmaps = list(), list()
+    for hms, tms in zip(heatmaps, tagmaps):
+        resized_heatmaps.append(F.interpolate(hms,
+                                              size=(projected_size[1], projected_size[0]),
+                                              mode='bilinear', align_corners=False))
+
+        resized_tagmaps.append(F.interpolate(tms,
+                                             size=(projected_size[1], projected_size[0], tms.shape[-1]),
+                                             mode='trilinear', align_corners=False))
 
     return resized_heatmaps, resized_tagmaps
 
 
 def flip_aggregation(heatmaps, tagmaps, with_flip, flip_index):
     if with_flip is True:
-        hms, flipped_hms = heatmaps[0], heatmaps[1]
-        flipped_hms = torch.flip(flipped_hms, [2])
-        flipped_hms = flipped_hms[flip_index]
-        avg_heatmaps = (hms + flipped_hms) / 2
-
-        tms, flipped_tms = tagmaps[0], tagmaps[1]
-        flipped_tms = torch.flip(flipped_tms, [2])
-        flipped_tms = flipped_tms[flip_index]
-        con_tagmaps = torch.stack([tms, flipped_tms], dim=3)
+        avg_heatmaps, con_tag_maps = list(), list()
+        for (hms, tms) in zip(heatmaps, tagmaps):
+            ori_hms = hms[[0]]
+            flipped_hms = torch.flip(hms[[1]], [3])
+            flipped_hms = flipped_hms[:, flip_index, :, :]
+            avg_heatmaps.append((ori_hms + flipped_hms) / 2)
+            ori_tms = tms[[0]]
+            flipped_tms = torch.flip(tms[[1]], [3])
+            flipped_tms = flipped_tms[:, flip_index, :, :]
+            con_tag_maps.append(torch.cat([ori_tms, flipped_tms], dim=4))
     else:
         avg_heatmaps = heatmaps
-        con_tagmaps = tagmaps
+        con_tag_maps = tagmaps
+
+    return avg_heatmaps, con_tag_maps
+
+
+def multi_scale_aggregation(heatmaps, tagmaps):
+    if len(heatmaps) > 1:
+        avg_heatmaps = 0
+        for i, (hms, tms) in enumerate(zip(heatmaps, tagmaps)):
+            avg_heatmaps += hms
+        avg_heatmaps = avg_heatmaps / len(heatmaps)
+    else:
+        avg_heatmaps = heatmaps[0]
+    con_tagmaps = tagmaps[0]
 
     return avg_heatmaps, con_tagmaps
 
@@ -189,8 +210,8 @@ def refine(instance, heatmaps, tagmaps):
     return instance
 
 
-def project2pri(instances, center, scale, output_size):
-    trans = get_affine_transform(center, scale, 0, output_size, inv=True)
+def project2pri(instances, center, scale, base_size):
+    trans = get_affine_transform(center, scale, 0, base_size, inv=True)
     target_instances = list()
     for p in range(len(instances)):
         ins = instances[p]
@@ -215,6 +236,13 @@ def post_processing(heatmaps, tagmaps, eval_cfg):
                                          tagmaps,
                                          with_flip=eval_cfg['with_flip'],
                                          flip_index=eval_cfg['flip_index'])
+
+    # aggregate multiple feature maps
+    heatmaps, tagmaps = multi_scale_aggregation(heatmaps, tagmaps)
+
+    # squeeze batch dimension
+    heatmaps = heatmaps.squeeze(0)
+    tagmaps = tagmaps.squeeze(0)
 
     # apply nms for heatmaps
     filtered_hms = nms(heatmaps, base_kernel_size=eval_cfg['nms_kernel_size'])
@@ -248,25 +276,27 @@ def post_processing(heatmaps, tagmaps, eval_cfg):
     instances = project2pri(instances,
                             np.array(eval_cfg['center']),
                             np.array(eval_cfg['scale']),
-                            eval_cfg['base_size'][::-1])
+                            eval_cfg['base_size'])
 
     return instances, scores
 
 
-def inference(model, data, eval_cfg):
-    if eval_cfg['with_flip']:
-        input = data['image']
-        flipped_input = torch.flip(input, [3])
-        input = torch.cat([input, flipped_input], dim=0)
-    else:
-        input = data['image']
-
+def inference(model, data, eval_cfg, gpu_id):
+    inputs = data['image']
     img_metas = data['img_metas'][0]
     eval_cfg.update(img_metas)
-    eval_cfg.update(base_size=data['image'].shape[2:])
 
-    with torch.no_grad():
-        heatmaps, tagmaps = model(input, phase='inference')
+    heatmaps, tagmaps = list(), list()
+    for input in inputs:
+        input = input.to('cuda:{}'.format(gpu_id))
+        if eval_cfg['with_flip']:
+            flipped_input = torch.flip(input, [3])
+            input = torch.cat([input, flipped_input], dim=0)
+
+        with torch.no_grad():
+            hms, tms = model(input, phase='inference')
+        heatmaps.append(hms)
+        tagmaps.append(tms)
 
     # post processing
     preds, scores = post_processing(heatmaps=heatmaps, tagmaps=tagmaps, eval_cfg=eval_cfg)
@@ -283,11 +313,7 @@ def eval(model, data_loader, eval_cfg, gpu_id, distributed=False):
         prog_bar = ProgressBar(len(data_loader))
 
     for i, data in enumerate(data_loader):
-        # format data
-        data['image'] = data.pop('image').to('cuda:{}'.format(gpu_id))
-
-        # inference
-        preds, scores = inference(model, data, eval_cfg)
+        preds, scores = inference(model, data, eval_cfg, gpu_id)
         results.append(dict(
             preds=preds,
             scores=scores,

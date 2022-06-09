@@ -34,17 +34,20 @@ model = dict(
     head=dict(
         type='AssociativeEmbeddingHead',
         in_channels=32,
-        num_keys=17
+        num_keys=17,
+        scale_res=8
     )
 )
 
 # trainer configuration
 trainer = dict(
     model=model,
+    scale_res=8,
     loss_weights=dict(
         hms_loss=1.0,
         pull_loss=1e-3,
-        push_loss=1e-3
+        push_loss=1e-3,
+        scale_loss=1e-4
     )
 )
 
@@ -82,23 +85,23 @@ train_pipeline = [
          std=[58.395, 57.12, 57.375],
          to_rgb=True),
     dict(type='Collect',
-         keys=['image', 'joints', 'masks', 'target_hms'],
+         keys=['image', 'box_scales', 'joints', 'masks', 'target_hms'],
          meta_keys=[])
 ]
 val_pipeline = [
     dict(type='LoadImageFromFile', channel_order='bgr'),
-    dict(type='ResizeAlign', size_divisor=64),
+    dict(type='ResizeAlign', size_divisor=64, scale_factors=[1]),
     dict(type='NormalizeImage',
          mean=[123.675, 116.28, 103.53],
          std=[58.395, 57.12, 57.375],
          to_rgb=True),
     dict(type='Collect',
          keys=['image'],
-         meta_keys=['image_file', 'flip_index', 'inference_channel', 'center', 'scale'])
+         meta_keys=['image_file', 'flip_index', 'inference_channel', 'base_size', 'center', 'scale'])
 ]
 set_cfg = dict(
     samples_per_gpu=10,
-    workers_per_gpu=4,
+    workers_per_gpu=2,
     train=dict(
         type='COCOPose',
         ann_file='{}/annotations/person_keypoints_train2017.json'.format(data_root),
@@ -132,5 +135,5 @@ solver = dict(
     total_epochs=300,
     eval_interval=10,   # epoch
     log_interval=50,   # iter
-    log_loss=['hms_loss', 'pull_loss', 'push_loss']
+    log_loss=['hms_loss', 'pull_loss', 'push_loss', 'scale_loss']
 )

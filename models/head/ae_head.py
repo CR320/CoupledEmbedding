@@ -10,12 +10,14 @@ class AssociativeEmbeddingHead(nn.Module):
 
     def __init__(self,
                  in_channels,
-                 num_keys):
+                 num_keys,
+                 scale_res):
         super().__init__()
         self.num_keys = num_keys
+        self.scale_res = scale_res
         self.hms_pred_layers = nn.Conv2d(in_channels=in_channels, out_channels=num_keys,
                                          kernel_size=1, stride=1, padding=0)
-        self.tms_pred_layers = nn.Conv2d(in_channels=in_channels, out_channels=num_keys,
+        self.tms_pred_layers = nn.Conv2d(in_channels=in_channels, out_channels=num_keys * scale_res,
                                          kernel_size=1, stride=1, padding=0)
         self.init_weights()
 
@@ -26,6 +28,11 @@ class AssociativeEmbeddingHead(nn.Module):
 
         heatmaps = [self.hms_pred_layers(x)]
         tagmaps = self.tms_pred_layers(x)
+
+        # reshape tagmaps
+        num_b, _, num_h, num_w = tagmaps.shape[0:4]
+        tagmaps = tagmaps.view(num_b, self.num_keys, self.scale_res, num_h, num_w)
+        tagmaps = tagmaps.permute(0, 1, 3, 4, 2).contiguous()
 
         return heatmaps, tagmaps
 
