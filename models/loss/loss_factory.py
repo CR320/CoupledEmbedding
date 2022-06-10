@@ -102,7 +102,7 @@ class AssociativeEmbeddingLoss(nn.Module):
             return (
                 _make_input(torch.zeros(1).float(), device=pred_tag.device),
                 _make_input(torch.zeros(1).float(), device=pred_tag.device),
-                _make_input(torch.zeros(1).float(), device=pred_tag.device),)
+                _make_input(torch.zeros(1).float(), device=pred_tag.device))
         elif num_tags == 1:
             return (_make_input(
                 torch.zeros(1).float(), device=pred_tag.device), pull, d_scale)

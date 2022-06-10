@@ -71,7 +71,7 @@ def main_worker(gpu, cfg, args, results_queue=None):
     logger.info('init model...')
     model = build_model(cfg.model)
     checkpoint = torch.load(args.mode_path, map_location='cpu')
-    # model.load_state_dict(checkpoint['model'], strict=True)
+    model.load_state_dict(checkpoint['model'], strict=True)
     gpu_id = gpu if args.distributed else gpu[0]
     model.to('cuda:{}'.format(gpu_id)).eval()
 
