@@ -56,10 +56,10 @@ class AssociativeEmbeddingLoss(nn.Module):
     def embed_scales(self, box_scales):
         box_scales = box_scales.unsqueeze(1).expand(box_scales.shape[0], self.scale_res)
         scale_gap = torch.abs(box_scales - self.scale_dist[None, :])
-        scale_embed = 1 / (scale_gap + 1e-10)
-        scale_embed = F.normalize(scale_embed, p=2, dim=1)
+        scale_embeds = 1 / (scale_gap + 1e-12)
+        scale_embeds = F.normalize(scale_embeds, p=2, dim=1)
 
-        return scale_embed
+        return scale_embeds
 
     def singleTagLoss(self, pred_tag, joints, box_scales):
         """Associative embedding loss for one image.
@@ -78,11 +78,10 @@ class AssociativeEmbeddingLoss(nn.Module):
         pull = 0
         d_scale = 0
         valid_inds = np.where(joints[..., -1].sum(axis=-1))[0]
-        scale_embeddings = self.embed_scales(box_scales)
+        scale_embeds = self.embed_scales(box_scales)
 
         for ind in valid_inds:
             joints_per_person = joints[ind]
-            tgt_vec = scale_embeddings[ind]
             tmp = []
             for joint in joints_per_person:
                 if joint[1] > 0:
@@ -91,10 +90,11 @@ class AssociativeEmbeddingLoss(nn.Module):
                 continue
             tmp = torch.stack(tmp)
             tags.append(torch.mean(tmp, dim=0))
-            pull = pull + torch.mean((tmp - tags[-1].expand_as(tmp))**2)
+            pull = pull + torch.mean(torch.square(tmp - tags[-1].expand_as(tmp)).sum(-1))
 
-            pred_vec = F.normalize(tags[-1].abs(), p=2, dim=0)
-            cosine = (tgt_vec * pred_vec).sum()
+            pred_embed = F.normalize(tags[-1].abs(), p=2, dim=0)
+            tgt_embed = scale_embeds[ind]
+            cosine = (pred_embed * tgt_embed).sum()
             d_scale = d_scale + (1 - cosine)
 
         num_tags = len(tags)
