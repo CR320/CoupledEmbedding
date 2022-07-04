@@ -7,11 +7,13 @@ class Trainer(nn.Module):
     def __init__(self,
                  model,
                  scale_res,
+                 with_focal,
+                 beta,
                  loss_weights):
         super().__init__()
         self.net = model
         self.loss_weights = loss_weights
-        self.hms_criterion = HeatmapsLoss()
+        self.hms_criterion = HeatmapsLoss(with_focal, beta)
         self.ae_criterion = AssociativeEmbeddingLoss(scale_res)
 
     def forward(self, data):

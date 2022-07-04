@@ -23,8 +23,9 @@ def _make_input(t, requires_grad=False, device=torch.device('cpu')):
 
 
 class HeatmapsLoss(nn.Module):
-    def __init__(self, beta=0.55, gamma=0.01):
+    def __init__(self, with_focal, beta, gamma=0.01):
         super().__init__()
+        self.with_focal = with_focal
         self.beta = beta
         self.gamma = gamma
         self.criterion = nn.MSELoss(reduction='none')
@@ -35,9 +36,10 @@ class HeatmapsLoss(nn.Module):
             target = target ** (self.beta / scales[i]) ** 2
             loss = self.criterion(pred, target)
 
-            pos_like = (1 - torch.log(target)) ** (-1 * self.gamma)
-            weight = pos_like * torch.abs(1 - pred) + (1 - pos_like) * torch.abs(pred)
-            loss = loss * weight
+            if self.with_focal:
+                pos_like = (1 - torch.log(target)) ** (-1 * self.gamma)
+                weight = pos_like * torch.abs(1 - pred) + (1 - pos_like) * torch.abs(pred)
+                loss = loss * weight
 
             if masks is not None:
                 loss = loss * masks[i][:, None, :, :]
