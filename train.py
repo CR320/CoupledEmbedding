@@ -173,6 +173,7 @@ def main_worker(gpu, cfg, args, results_queue=None):
 
         # evaluate model
         if epoch % cfg.solver.eval_interval == 0:
+            logger.info('Evaluating with {} Processes....'.format(args.num_gpus))
             results = eval(model.module.net, val_loader, cfg.eval_cfg, gpu_id, args.distributed)
             if args.distributed:
                 if gpu_id != 0:
