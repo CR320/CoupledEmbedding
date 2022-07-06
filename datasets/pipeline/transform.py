@@ -368,16 +368,16 @@ class ResizeAlign:
     def _get_image_size(self, image_shape, input_size):
         # calculate the size for min_scale
         h, w = image_shape
-        min_input_size = self._ceil_to_multiples_of(input_size)
+        input_size = self._ceil_to_multiples_of(input_size)
 
         if w < h:
-            w_resized = int(min_input_size)
-            h_resized = int(self._ceil_to_multiples_of(min_input_size / w * h))
+            w_resized = int(input_size)
+            h_resized = int(self._ceil_to_multiples_of(input_size / w * h))
             scale_w = w / 200
             scale_h = h_resized / w_resized * w / 200
         else:
-            h_resized = int(min_input_size)
-            w_resized = int(self._ceil_to_multiples_of(min_input_size / h * w))
+            h_resized = int(input_size)
+            w_resized = int(self._ceil_to_multiples_of(input_size / h * w))
             scale_h = h / 200
             scale_w = w_resized / h_resized * h / 200
 
@@ -400,9 +400,9 @@ class ResizeAlign:
         assert self.scale_factors[0] == 1
         resized_images = list()
         for scale_factor in self.scale_factors:
-            output_size = (int(base_size[0] * scale_factor), int(base_size[1] * scale_factor))
-            trans = get_affine_transform(np.array(center), np.array(scale), 0, output_size)
-            resized_images.append(cv2.warpAffine(image, trans, output_size))
+            scaled_size = (int(base_size[0] * scale_factor), int(base_size[1] * scale_factor))
+            trans = get_affine_transform(np.array(center), np.array(scale), 0, scaled_size)
+            resized_images.append(cv2.warpAffine(image, trans, scaled_size))
 
         results['image'] = resized_images
 
