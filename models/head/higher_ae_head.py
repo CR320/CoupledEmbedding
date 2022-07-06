@@ -37,15 +37,17 @@ class HigherAssociativeEmbeddingHead(nn.Module):
     def __init__(self,
                  in_channels,
                  num_keys,
+                 scale_res,
                  num_basic_blocks=4):
         super().__init__()
         self.num_keys = num_keys
+        self.scale_res = scale_res
         self.hms_pred_layers = nn.ModuleList([nn.Conv2d(in_channels=in_channels,
                                                         out_channels=num_keys,
                                                         kernel_size=1, stride=1, padding=0) for _ in range(2)])
-        self.tms_pred_layers = nn.Conv2d(in_channels=in_channels, out_channels=num_keys,
+        self.tms_pred_layers = nn.Conv2d(in_channels=in_channels, out_channels=num_keys * scale_res,
                                          kernel_size=1, stride=1, padding=0)
-        self.deconv_layers = nn.Sequential(nn.ConvTranspose2d(in_channels=in_channels + num_keys*2,
+        self.deconv_layers = nn.Sequential(nn.ConvTranspose2d(in_channels=in_channels + num_keys,
                                                               out_channels=in_channels,
                                                               kernel_size=4, stride=2, padding=1, bias=False),
                                            nn.BatchNorm2d(num_features=in_channels),
@@ -62,9 +64,13 @@ class HigherAssociativeEmbeddingHead(nn.Module):
         heatmaps = list()
         hms_low = self.hms_pred_layers[0](x)
         heatmaps.append(hms_low)
-        tagmaps = self.tms_pred_layers(x)
 
-        cat_x = torch.cat([x, hms_low, tagmaps], dim=1)
+        tagmaps = self.tms_pred_layers(x)
+        num_b, _, num_h, num_w = tagmaps.shape[0:4]
+        tagmaps = tagmaps.view(num_b, self.num_keys, self.scale_res, num_h, num_w)
+        tagmaps = tagmaps.permute(0, 1, 3, 4, 2).contiguous()
+
+        cat_x = torch.cat([x, hms_low], dim=1)
         cat_x = self.deconv_layers(cat_x)
 
         cat_x = self.blocks(cat_x)
