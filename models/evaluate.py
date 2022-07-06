@@ -40,13 +40,10 @@ def flip_aggregation(heatmaps, tagmaps, with_flip, flip_index):
 
 
 def multi_scale_aggregation(heatmaps, tagmaps):
-    if len(heatmaps) > 1:
-        avg_heatmaps = 0
-        for i, (hms, tms) in enumerate(zip(heatmaps, tagmaps)):
-            avg_heatmaps += hms
-        avg_heatmaps = avg_heatmaps / len(heatmaps)
-    else:
-        avg_heatmaps = heatmaps[0]
+    avg_heatmaps = 0
+    for hms in heatmaps:
+        avg_heatmaps += hms
+    avg_heatmaps = avg_heatmaps / len(heatmaps)
     con_tagmaps = tagmaps[0]
 
     return avg_heatmaps, con_tagmaps
