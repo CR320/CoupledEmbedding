@@ -32,9 +32,9 @@ model = dict(
         pre_weights='pretrained/hrnet_w48-8ef0771d.pth',
     ),
     head=dict(
-        type='AssociativeEmbeddingHead',
+        type='HigherAssociativeEmbeddingHead',
         in_channels=48,
-        num_keys=14,
+        num_keys=17,
         scale_res=8
     )
 )
@@ -44,7 +44,7 @@ trainer = dict(
     model=model,
     scale_res=8,
     with_focal=True,
-    beta=0.55,
+    beta=0.40,
     loss_weights=dict(
         hms_loss=1.0,
         pull_loss=1e-3,
@@ -64,14 +64,14 @@ eval_cfg = dict(
 )
 
 # data-set configuration
-data_root = '/home/wanghaixin/datasets/crowdpose'
+data_root = '/home/wanghaixin/datasets/coco'
 data_cfg = dict(
     image_size=640,
-    heatmap_size=[160],
+    heatmap_size=[160, 320],
     use_nms=False,
     soft_nms=False,
     oks_thr=0.9,
-    num_scales=1
+    num_scales=2
 )
 train_pipeline = [
     dict(type='LoadImageFromFile', channel_order='bgr'),
@@ -105,19 +105,19 @@ set_cfg = dict(
     samples_per_gpu=10,
     workers_per_gpu=2,
     train=dict(
-        type='CrowdPose',
-        ann_file='{}/json/crowdpose_trainval.json'.format(data_root),
-        img_prefix='{}/images/'.format(data_root),
+        type='COCOPose',
+        ann_file='{}/annotations/person_keypoints_train2017.json'.format(data_root),
+        img_prefix='{}/train2017/'.format(data_root),
         pipeline=train_pipeline),
     val=dict(
-        type='CrowdPose',
-        ann_file='{}/json/crowdpose_test.json'.format(data_root),
-        img_prefix='{}/images/'.format(data_root),
+        type='COCOPose',
+        ann_file='{}/annotations/person_keypoints_val2017.json'.format(data_root),
+        img_prefix='{}/val2017/'.format(data_root),
         pipeline=val_pipeline),
     test=dict(
-        type='CrowdPose',
-        ann_file='{}/json/crowdpose_test.json'.format(data_root),
-        img_prefix='{}/images/'.format(data_root),
+        type='COCOPose',
+        ann_file='{}/annotations/image_info_test-dev2017.json'.format(data_root),
+        img_prefix='{}/test2017/'.format(data_root),
         pipeline=val_pipeline),
 )
 
@@ -136,6 +136,6 @@ solver = dict(
     ),
     total_epochs=300,
     eval_interval=10,   # epoch
-    log_interval=25,   # iter
+    log_interval=50,   # iter
     log_loss=['hms_loss', 'pull_loss', 'push_loss', 'scale_loss']
 )
