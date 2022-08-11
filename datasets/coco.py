@@ -141,8 +141,8 @@ class COCOPose(BaseDataset):
         img_id = self.db[idx]
         ann_ids = coco.getAnnIds(imgIds=img_id)
         anno = coco.loadAnns(ann_ids)
-        anno = [obj.copy() for obj in anno if obj['iscrowd'] == 0 or obj['num_keypoints'] > 0]
         mask = self._get_mask(anno, idx)
+        anno = [obj.copy() for obj in anno if obj['iscrowd'] == 0 or obj['num_keypoints'] > 0]
         joints = self._get_joints(anno)
         boxes = self._get_boxes(anno)
 
