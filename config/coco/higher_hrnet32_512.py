@@ -103,7 +103,7 @@ val_pipeline = [
 ]
 set_cfg = dict(
     samples_per_gpu=10,
-    workers_per_gpu=2,
+    workers_per_gpu=4,
     train=dict(
         type='COCOPose',
         ann_file='{}/annotations/person_keypoints_train2017.json'.format(data_root),

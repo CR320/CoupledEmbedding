@@ -103,7 +103,7 @@ val_pipeline = [
 ]
 set_cfg = dict(
     samples_per_gpu=10,
-    workers_per_gpu=2,
+    workers_per_gpu=4,
     train=dict(
         type='CrowdPose',
         ann_file='{}/json/crowdpose_trainval.json'.format(data_root),
