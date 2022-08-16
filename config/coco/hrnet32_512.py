@@ -64,7 +64,7 @@ eval_cfg = dict(
 )
 
 # data-set configuration
-data_root = '/home/wanghaixin/datasets/coco'
+data_root = 'data/coco'
 data_cfg = dict(
     image_size=512,
     heatmap_size=[128],

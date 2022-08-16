@@ -64,7 +64,7 @@ eval_cfg = dict(
 )
 
 # data-set configuration
-data_root = '/home/wanghaixin/datasets/crowdpose'
+data_root = 'data/crowdpose'
 data_cfg = dict(
     image_size=512,
     heatmap_size=[128, 256],
