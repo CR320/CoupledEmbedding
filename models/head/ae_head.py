@@ -2,10 +2,10 @@ import torch.nn as nn
 
 
 class AssociativeEmbeddingHead(nn.Module):
-    """Heatmaps for joints detection.
+    """Heatmaps for joints detection & grouping.
     Args:
         in_channels (int): Number of input channels.
-        num_keys (int): Number of joint keys.
+        num_keys (int): Number of joint types.
     """
 
     def __init__(self,

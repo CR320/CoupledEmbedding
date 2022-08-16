@@ -1,10 +1,14 @@
+# ------------------------------------------------------------------------------
+# Adapted from https://github.com/open-mmlab/mmpose
+# Original licence: Copyright (c) OpenMMLab, under the Apache License.
+# ------------------------------------------------------------------------------
 import torch
 import importlib
 import collections
 from collections.abc import Sequence
 
 
-def collate_function(batches, samples_per_gpu=1):
+def collate_function(batches):
     """Puts each data field into a tensor/DataContainer with outer dimension
     batch size.
 

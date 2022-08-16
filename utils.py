@@ -110,8 +110,8 @@ def get_logger(name, log_file=None, log_level=logging.INFO):
 
 
 class SmoothedLossContainer(object):
-    """Track a series of values and provide access to smoothed values over a
-    window or the global series average.
+    """Track a series of values and provide access to smoothed average values over a
+    window.
     """
 
     def __init__(self, log_key, log_interval=10):
@@ -142,14 +142,14 @@ class SmoothedLossContainer(object):
 
 
 class WarmupMultiStepLR(MultiStepLR):
-    r"""
+    """
     # max_iter = epochs * steps_per_epoch
     Args:
         optimizer (Optimizer): Wrapped optimizer.
-        warmup_iters (int): The total number of warm-up iterations.
         milestones (list)  List of iter indices. Must be increasing.
+        warmup_iters (int): The total number of warm-up iterations.
+        warmup_ratio (float): Default: 0.001.
         gamma (float): Multiplicative factor of learning rate decay. Default: 0.1.
-        warmup_ratio (float):Default: 0.001.
         last_epoch (int): The index of last epoch. Default: -1.
     """
     def __init__(self, optimizer, milestones, warmup_iters, warmup_ratio=1e-3,  gamma=0.1, last_epoch=-1):

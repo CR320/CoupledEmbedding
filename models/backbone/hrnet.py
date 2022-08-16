@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------
-# The code is based on open-mmlab/mmpose
-# (https://github.com/open-mmlab/mmpose)
+# Adapted from https://github.com/open-mmlab/mmpose
+# Original licence: Copyright (c) OpenMMLab, under the Apache License.
 # ------------------------------------------------------------------------------
 import torch
 import torch.nn as nn

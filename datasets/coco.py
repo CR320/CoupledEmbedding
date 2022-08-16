@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Adapted from https://github.com/open-mmlab/mmpose
+# Original licence: Copyright (c) OpenMMLab, under the Apache License.
+# ------------------------------------------------------------------------------
 import os
 import numpy as np
 import json_tricks as json

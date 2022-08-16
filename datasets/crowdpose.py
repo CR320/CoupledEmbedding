@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Adapted from https://github.com/open-mmlab/mmpose
+# Original licence: Copyright (c) OpenMMLab, under the Apache License.
+# ------------------------------------------------------------------------------
 import numpy as np
 from xtcocotools.cocoeval import COCOeval
 from .coco import COCOPose

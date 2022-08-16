@@ -4,25 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 
 
-def _make_input(t, requires_grad=False, device=torch.device('cpu')):
-    """Make zero inputs for AE loss.
-
-    Args:
-        t (torch.Tensor): input
-        requires_grad (bool): Option to use requires_grad.
-        device: torch device
-
-    Returns:
-        torch.Tensor: zero input.
-    """
-    inp = torch.autograd.Variable(t, requires_grad=requires_grad)
-    inp = inp.sum()
-    inp = inp.to(device)
-
-    return inp
-
-
-class HeatmapsLoss(nn.Module):
+class ScaleWiseHeatmapsLoss(nn.Module):
     def __init__(self, with_focal, beta, gamma=0.01):
         super().__init__()
         self.with_focal = with_focal
@@ -49,11 +31,29 @@ class HeatmapsLoss(nn.Module):
         return total_loss
 
 
-class AssociativeEmbeddingLoss(nn.Module):
+class RegularizedAssociativeEmbeddingLoss(nn.Module):
     def __init__(self, scale_res):
         super().__init__()
         self.scale_res = scale_res
         self.scale_dist = nn.Parameter(torch.arange(0.5 / scale_res, 1.0, 1 / scale_res), requires_grad=False)
+
+    @ staticmethod
+    def _make_input(t, requires_grad=False, device=torch.device('cpu')):
+        """Make zero inputs for AE loss.
+
+        Args:
+            t (torch.Tensor): input
+            requires_grad (bool): Option to use requires_grad.
+            device: torch device
+
+        Returns:
+            torch.Tensor: zero input.
+        """
+        inp = torch.autograd.Variable(t, requires_grad=requires_grad)
+        inp = inp.sum()
+        inp = inp.to(device)
+
+        return inp
 
     def embed_scales(self, box_scales):
         box_scales = box_scales.unsqueeze(1).expand(box_scales.shape[0], self.scale_res)
@@ -64,18 +64,6 @@ class AssociativeEmbeddingLoss(nn.Module):
         return scale_embeds
 
     def singleTagLoss(self, pred_tag, joints, box_scales):
-        """Associative embedding loss for one image.
-
-        Note:
-            - heatmaps weight: W
-            - heatmaps height: H
-            - max_num_people: M
-            - num_keypoints: K
-
-        Args:
-            pred_tag (torch.Tensor[KxHxW,1]): tag of output for one image.
-            joints (torch.Tensor[M,K,2]): joints information for one image.
-        """
         tags = []
         pull = 0
         d_scale = 0
@@ -102,11 +90,11 @@ class AssociativeEmbeddingLoss(nn.Module):
         num_tags = len(tags)
         if num_tags == 0:
             return (
-                _make_input(torch.zeros(1).float(), device=pred_tag.device),
-                _make_input(torch.zeros(1).float(), device=pred_tag.device),
-                _make_input(torch.zeros(1).float(), device=pred_tag.device))
+                self._make_input(torch.zeros(1).float(), device=pred_tag.device),
+                self._make_input(torch.zeros(1).float(), device=pred_tag.device),
+                self._make_input(torch.zeros(1).float(), device=pred_tag.device))
         elif num_tags == 1:
-            return (_make_input(
+            return (self._make_input(
                 torch.zeros(1).float(), device=pred_tag.device), pull, d_scale)
 
         tags = torch.stack(tags)

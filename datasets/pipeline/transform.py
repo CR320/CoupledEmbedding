@@ -1,8 +1,10 @@
+# ------------------------------------------------------------------------------
+# Adapted from https://github.com/open-mmlab/mmpose
+# Original licence: Copyright (c) OpenMMLab, under the Apache License.
+# ------------------------------------------------------------------------------
 import cv2
 import mmcv
 import numpy as np
-import torch
-
 from .utils import get_affine_transform, warp_affine_joints, warp_affine_boxes
 
 

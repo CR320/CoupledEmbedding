@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from models.loss.loss_factory import HeatmapsLoss, AssociativeEmbeddingLoss
+from models.loss.loss_factory import ScaleWiseHeatmapsLoss, RegularizedAssociativeEmbeddingLoss
 
 
 class Trainer(nn.Module):
@@ -13,8 +13,8 @@ class Trainer(nn.Module):
         super().__init__()
         self.net = model
         self.loss_weights = loss_weights
-        self.hms_criterion = HeatmapsLoss(with_focal, beta)
-        self.ae_criterion = AssociativeEmbeddingLoss(scale_res)
+        self.hms_criterion = ScaleWiseHeatmapsLoss(with_focal, beta)
+        self.ae_criterion = RegularizedAssociativeEmbeddingLoss(scale_res)
 
     def forward(self, data):
         losses = dict()

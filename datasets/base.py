@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Adapted from https://github.com/open-mmlab/mmpose
+# Original licence: Copyright (c) OpenMMLab, under the Apache License.
+# ------------------------------------------------------------------------------
 import copy
 import numpy as np
 from torch.utils.data import Dataset
