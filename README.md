@@ -17,7 +17,7 @@
 *Note: Flipping test is used. Superscript*
 
 ### Results on CrowdPose test
-| Method                 | Input size | Multi-Scale Test | AP | Ap .5 | AP .75 | AP (E) | AP (M) | AP (H) |
+| Method                 | Input size | Multi-Scale Test | AP | AP .5 | AP .75 | AP (E) | AP (M) | AP (H) |
 |------------------------|------------|------------------|----|-------|--------|--------|--------|--------|
 | **pose_hrnet_w32**     | 512        |&#10008;          |68.9| 89.0  | 74.2   | 76.3   | 69.5   | 60.8   |
 | **pose_hrnet_w48**     | 640        |&#10008;          |70.1| 89.8  | 75.5   | 77.5   | 70.8   | 62.2   |
