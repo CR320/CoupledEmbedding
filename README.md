@@ -27,4 +27,4 @@
 | **pose_hrhrnet_w48+**  | 512        |72.9| 89.5  | 78.8   | 79.6   | 73.7   | 64.5   |
 | **pose_hrhrnet_w48\*+**| 512        |74.5| 91.1  | 80.2   | 81.3   | 75.4   | 66.2   |
 
-*Note: Flipping test is used. + indicates the model is pretrained on COCO. Superscript ∗ indicates multiscale test.*
+*Note: Flipping test is used. Superscript ∗ indicates multiscale test. + indicates the model is pretrained on COCO.*
