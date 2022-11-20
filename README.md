@@ -34,4 +34,4 @@ The embedding-based method such as Associative Embedding is popular in bottom-up
 *Note: Flipping test is used. + indicates the model is pretrained on COCO.*
 
 ## Model Zoo
-Please download models from [Google Drive](https://drive.google.com/drive/folders/1Jln6GtSoFIxbwt6hQ3YLXt_-a0dgIp0P)
+Please download models from [Google Drive](https://drive.google.com/drive/folders/1Jln6GtSoFIxbwt6hQ3YLXt_-a0dgIp0P) or [Baidu Netdisk](https://pan.baidu.com/s/1HkEpBhTzCpfwLvzq5w1iEA) (password: 5hrp)
