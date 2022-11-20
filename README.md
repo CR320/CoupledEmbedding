@@ -4,6 +4,10 @@
 > Haixin Wang, Lu Zhou, Yingying Chen, Ming Tang, jinqiao Wang  
 > In: European Conference on Computer Vision (ECCV), 2022   
 
+## Introduction
+This is the official code of [Regularizing Vector Embedding in Bottom-Up Human Pose Estimation](https://link.springer.com/chapter/10.1007/978-3-031-20068-7_7).  
+The embedding-based method such as Associative Embedding is popular in bottom-up human pose estimation. Methods under this framework group candidate keypoints according to the predicted identity embeddings. However, the identity embeddings of different instances are likely to be linearly inseparable in some complex scenes, such as crowded scene or when the number of instances in the image is large. To reduce the impact of this phenomenon on keypoint grouping, we try to learn a sparse multidimensional embedding for each keypoint. We observe that the different dimensions of embeddings are highly linearly correlated. To address this issue, we impose an additional constraint on the embeddings during training phase. Based on the fact that the scales of instances usually have significant variations, we utilize the scales of instances to regularize the embeddings, which effectively reduces the linear correlation of embeddings and makes embeddings being sparse. 
+
 ## Main Results
 ### Results on COCO test-dev2017
 | Model                 | Input size | Multi-Scale Test | AP  | AP .5 | AP .75 | AP (M) | AP (L) |
