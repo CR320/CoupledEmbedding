@@ -13,4 +13,5 @@
 | **pose_hrhrnet_w32** |  512 | 68.8 | 90.3 | 75.2 | 62.9 | 77.1 |
 | **pose_hrhrnet_w48** |  640 | 71.1 | 90.8 | 77.8 | 66.4 | 78.0 |
 | **pose_hrhrnet_w48\*** |  640 | 72.8 | 91.2 | 79.9 | 68.3 | 79.3 |
+
 *Note: Superscript \∗ means multiscale test. Flipping test is used.*
