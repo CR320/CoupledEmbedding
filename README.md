@@ -39,7 +39,7 @@ Please download models from [Google Drive](https://drive.google.com/drive/folder
 **For CrowdPose data**, please download from [CrowdPose download](https://github.com/Jeff-sjtu/CrowdPose#dataset), Train/Val is needed for CrowdPose keypoints training.
 Extract them under ${YOUR_DATA_DIR}, and make them look like this:
 ```
-    ${YOUR_DATA_DIR}
+${YOUR_DATA_DIR}
     |-- coco
     `-- |-- annotations
         |   |-- person_keypoints_train2017.json
