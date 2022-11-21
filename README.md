@@ -91,25 +91,25 @@ ${YOUR_DATA_DIR}
    ```
 4. Training with multiple gpus (take COCO as the example):
 
-```
-python train.py \
-    config/coco/hrnet32_512.py --num_gpus ${NUM_GPUS} --distributed True --work_dir ${YOUR WORK DIR}
-```
+    ```
+    python train.py \
+        config/coco/hrnet32_512.py --num_gpus ${NUM_GPUS} --distributed True --work_dir ${YOUR WORK DIR}
+    ```
 5. Testing with single gpu on validation set:
 
-```
-python test.py \
-    config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set val
-```
+    ```
+    python test.py \
+        config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set val
+    ```
 6. Testing with single gpu on test set:
 
-```
-python test.py \
-    config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set test
-```
+    ```
+    python test.py \
+        config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set test
+    ```
 7. Testing with multiple gpus:
 
-```
-python test.py \
-    config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set test --num_gpus ${NUM_GPUS} --distributed True
-```
+    ```
+    python test.py \
+        config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set test --num_gpus ${NUM_GPUS} --distributed True
+    ```
