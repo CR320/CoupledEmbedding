@@ -43,10 +43,12 @@ Extract them under ${YOUR_DATA_DIR}, and make them look like this:
     |-- coco
     `-- |-- annotations
         |   |-- person_keypoints_train2017.json
-        |   `-- person_keypoints_val2017.json
-        `-- images
-            |-- train2017
-            `-- val2017
+        |   |-- person_keypoints_val2017.json
+        |   `-- image_info_test-dev2017.json
+        |-- train2017
+        |-- val2017
+        `-- test2017
+            
     |-- crowdpose
     `-- |-- json
         |   |-- crowdpose_train.json
