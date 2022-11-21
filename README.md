@@ -35,8 +35,8 @@ The embedding-based method such as Associative Embedding is popular in bottom-up
 Please download models from [Google Drive](https://drive.google.com/drive/folders/1Jln6GtSoFIxbwt6hQ3YLXt_-a0dgIp0P) or [Baidu Netdisk](https://pan.baidu.com/s/1zBbhPQTwW0JxZl1qq7QNlA) (password: 7amz)
 
 ### Data preparation
-**For COCO data**, please download from [COCO download](http://cocodataset.org/#download), 2017 Train/Val is needed for COCO keypoints training and validation. 
-**For CrowdPose data**, please download from [CrowdPose download](https://github.com/Jeff-sjtu/CrowdPose#dataset), Train/Val is needed for CrowdPose keypoints training.
+**For COCO data**, please download from [COCO](http://cocodataset.org/#download), 2017 Train/Val is needed for COCO keypoints training and validation. 
+**For CrowdPose data**, please download from [CrowdPose](https://github.com/Jeff-sjtu/CrowdPose#dataset), Train/Val is needed for CrowdPose keypoints training.
 Extract them under ${YOUR_DATA_DIR}, and make them look like this:
 ```
 ${YOUR_DATA_DIR}
@@ -89,3 +89,27 @@ ${YOUR_DATA_DIR}
    `-- |-- hrnet_w32-36af842e.pth
        `-- hrnet_w48-8ef0771d.pth
    ```
+4. Training with multiple gpus
+
+```
+python train.py \
+    config/coco/hrnet32_512.py --num_gpus ${NUM_GPUS} --distributed True --work_dir ${YOUR WORK DIR}
+```
+5. Testing with single gpu on validation set
+
+```
+python test.py \
+    config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set val
+```
+6. Testing with single gpu on test set
+
+```
+python test.py \
+    config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set test
+```
+7. Testing with multiple gpus
+
+```
+python test.py \
+    config/coco/hrnet32_512.py ${YOUR WORK DIR}/coco/ce_hrnet_w32.pth --set test --num_gpus ${NUM_GPUS} --distributed True
+```
