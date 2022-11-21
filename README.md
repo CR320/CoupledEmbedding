@@ -18,8 +18,6 @@ The embedding-based method such as Associative Embedding is popular in bottom-up
 | **ce_hrhrnet_w48**  |  640       |&#10008;          | 71.1 | 90.8  | 77.8   | 66.4   | 78.0   |
 | **ce_hrhrnet_w48**  |  640       |&#10004;          | 72.8 | 91.2  | 79.9   | 68.3   | 79.3   |
 
-*Note: Flipping test is used. Superscript*
-
 ### Results on CrowdPose test
 | Method               | Input size | Multi-Scale Test |  AP  | AP .5 | AP .75 | AP (E) | AP (M) | AP (H) |
 |----------------------|------------|------------------|------|-------|--------|--------|--------|--------|
@@ -35,3 +33,30 @@ The embedding-based method such as Associative Embedding is popular in bottom-up
 
 ## Model Zoo
 Please download models from [Google Drive](https://drive.google.com/drive/folders/1Jln6GtSoFIxbwt6hQ3YLXt_-a0dgIp0P) or [Baidu Netdisk](https://pan.baidu.com/s/1zBbhPQTwW0JxZl1qq7QNlA) (password: 7amz)
+
+## Quick start
+1. Clone this repo, and your directory tree should look like this:
+
+   ```
+   CoupledEmbedding
+   ├── config
+   ├── datasets
+   ├── models
+   ├── pretrained
+   ├── README.md
+   ├── requirements.txt
+   ├── test.py
+   ├── train.txt
+   └── utils.py
+   ```
+2.Install dependencies:
+   ```
+   cd CoupledEmbedding
+   pip install -r requirements.txt
+   ```
+3.Download pretrained backbone from openmmlab: 
+   ```
+   cd pretrained
+   wget https://download.openmmlab.com/mmpose/pretrain_models/hrnet_w32-36af842e.pth
+   wget https://download.openmmlab.com/mmpose/pretrain_models/hrnet_w48-8ef0771d.pth
+   ```
