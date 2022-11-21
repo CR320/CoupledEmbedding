@@ -49,14 +49,19 @@ Please download models from [Google Drive](https://drive.google.com/drive/folder
    ├── train.txt
    └── utils.py
    ```
-2.Install dependencies:
+2. Install dependencies:
    ```
-   cd CoupledEmbedding
    pip install -r requirements.txt
    ```
-3.Download pretrained backbone from openmmlab: 
+3. Download pretrained backbone from openmmlab: 
    ```
-   cd pretrained
    wget https://download.openmmlab.com/mmpose/pretrain_models/hrnet_w32-36af842e.pth
    wget https://download.openmmlab.com/mmpose/pretrain_models/hrnet_w48-8ef0771d.pth
    ```
+   The directory should look like this:
+       ```
+    CoupledEmbedding
+    |-- pretrained
+    `-- |-- hrnet_w32-36af842e.pth
+        `-- hrnet_w48-8ef0771d.pth
+    ```
